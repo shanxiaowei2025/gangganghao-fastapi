@@ -59,3 +59,39 @@ class UpdateProfileResponse(BaseModel):
     code: int
     message: str
     data: Optional[UserResponse] = None
+
+
+class UserCreateRequest(BaseModel):
+    username: str
+    password: str
+    real_name: str
+    id_card: str
+    phone: str
+    department: str
+
+
+class UserUpdateRequest(BaseModel):
+    real_name: Optional[str] = None
+    id_card: Optional[str] = None
+    phone: Optional[str] = None
+    department: Optional[str] = None
+
+
+class UserListResponse(BaseModel):
+    code: int
+    message: str
+    data: List[UserResponse] = []
+    total: int = 0
+    page: int = 1
+    pagesize: int = 10
+
+
+class UserDetailResponse(BaseModel):
+    code: int
+    message: str
+    data: Optional[UserResponse] = None
+
+
+class UserDeleteResponse(BaseModel):
+    code: int
+    message: str

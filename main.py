@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.modules.auth import router as auth_router
+from app.modules.user.routes import router as user_router
 from dotenv import load_dotenv
 
 # 加载 .env 文件
@@ -26,6 +27,7 @@ app.add_middleware(
 
 # 包含路由
 app.include_router(auth_router)
+app.include_router(user_router)
 
 
 @app.get("/")

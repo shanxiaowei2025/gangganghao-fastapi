@@ -146,14 +146,14 @@ def change_password(
     )
 
 
-@router.put("/auth/profile", response_model=UpdateProfileResponse, summary="修改用户信息")
+@router.patch("/auth/profile", response_model=UpdateProfileResponse, summary="修改用户信息")
 def update_profile(
     update_request: UpdateProfileRequest,
     current_user: SysUser = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
     """
-    修改当前用户信息
+    修改当前用户信息（部分更新）
     
     参数:
     - real_name: 真实姓名（可选）
