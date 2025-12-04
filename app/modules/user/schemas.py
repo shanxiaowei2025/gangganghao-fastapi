@@ -21,6 +21,7 @@ class UserResponse(BaseModel):
     id: int
     username: str
     real_name: str
+    id_card: str
     phone: str
     department: str
     roles: List[RoleResponse] = []
@@ -49,6 +50,7 @@ class ChangePasswordResponse(BaseModel):
 
 class UpdateProfileRequest(BaseModel):
     real_name: Optional[str] = None
+    id_card: Optional[str] = None
     phone: Optional[str] = None
     department: Optional[str] = None
 

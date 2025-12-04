@@ -157,6 +157,7 @@ def update_profile(
     
     参数:
     - real_name: 真实姓名（可选）
+    - id_card: 身份证号（可选）
     - phone: 手机号（可选）
     - department: 部门（可选）
     
@@ -167,6 +168,9 @@ def update_profile(
     # 更新非空字段
     if update_request.real_name is not None:
         current_user.real_name = update_request.real_name
+    
+    if update_request.id_card is not None:
+        current_user.id_card = update_request.id_card
     
     if update_request.phone is not None:
         current_user.phone = update_request.phone
