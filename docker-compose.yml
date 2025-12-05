@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  # FastAPI 应用服务（连接腾讯云 MySQL）
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: gangganghao-app
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      SECRET_KEY: ${SECRET_KEY}
+      ALGORITHM: ${ALGORITHM}
+      ACCESS_TOKEN_EXPIRE_MINUTES: ${ACCESS_TOKEN_EXPIRE_MINUTES}
+      RELOAD: ${RELOAD}
+      TZ: Asia/Shanghai
+    ports:
+      - "${APP_PORT:-8000}:8000"
+    volumes:
+      - ./app:/app/app
+      - ./main.py:/app/main.py
+      - ./database.py:/app/database.py
+      - ./auth.py:/app/auth.py
+    restart: unless-stopped
+    command: uvicorn main:app --host 0.0.0.0 --port 8000

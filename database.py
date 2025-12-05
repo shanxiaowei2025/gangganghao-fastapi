@@ -1,21 +1,14 @@
 import os
-from urllib.parse import quote
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
-# 从环境变量读取数据库配置
-db_host = os.getenv("DB_HOST", "127.0.0.1")
-db_port = os.getenv("DB_PORT", "3306")
-db_username = os.getenv("DB_USERNAME", "root")
-db_password = os.getenv("DB_PASSWORD", "zhongyue123")
-db_database = os.getenv("DB_DATABASE", "gangganghao")
-
-# 对密码进行URL编码（处理特殊字符如@）
-db_password_encoded = quote(db_password, safe='')
-
-# 数据库连接字符串
-DATABASE_URL = f"mysql+pymysql://{db_username}:{db_password_encoded}@{db_host}:{db_port}/{db_database}"
+# 从环境变量读取数据库连接字符串
+# 优先使用 DATABASE_URL，如果没有则使用单独的配置参数
+DATABASE_URL = os.getenv(
+    "DATABASE_URL",
+    "mysql+pymysql://root:password@127.0.0.1:3306/gangganghao"
+)
 
 engine = create_engine(
     DATABASE_URL,
