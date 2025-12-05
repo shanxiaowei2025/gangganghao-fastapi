@@ -2,7 +2,6 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from database import get_db
-from app.modules.auth.utils import check_permission
 from app.modules.auth.routes import get_current_user
 from app.modules.user.models import SysUser
 from app.modules.department.models import SysDepartment
@@ -28,16 +27,7 @@ def create_department(
     - description: 部门描述（可选）
     - parent_id: 父部门ID（可选）
     
-    需要权限: department:create
     """
-    
-    # 检查权限
-    has_permission, permission_name = check_permission(current_user, 'department:create', db)
-    if not has_permission:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail=f"权限不足，需要权限: {permission_name}"
-        )
     
     # 检查部门名称是否已存在
     existing_dept = db.query(SysDepartment).filter(
@@ -95,17 +85,7 @@ def list_departments(
     - page: 页码（默认1）
     - pagesize: 每页记录数（默认10）
     - department_name: 部门名称（模糊查询，可选）
-    
-    需要权限: department:read
     """
-    
-    # 检查权限
-    has_permission, permission_name = check_permission(current_user, 'department:read', db)
-    if not has_permission:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail=f"权限不足，需要权限: {permission_name}"
-        )
     
     # 验证参数
     if page < 1:
@@ -153,17 +133,7 @@ def get_department(
     参数:
     - dept_id: 部门ID
     
-    需要权限: department:read
     """
-    
-    # 检查权限
-    has_permission, permission_name = check_permission(current_user, 'department:read', db)
-    if not has_permission:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail=f"权限不足，需要权限: {permission_name}"
-        )
-    
     db_dept = db.query(SysDepartment).filter(SysDepartment.id == dept_id).first()
     
     if not db_dept:
@@ -197,16 +167,7 @@ def update_department(
     - description: 部门描述（可选）
     - parent_id: 父部门ID（可选）
     
-    需要权限: department:update
     """
-    
-    # 检查权限
-    has_permission, permission_name = check_permission(current_user, 'department:update', db)
-    if not has_permission:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail=f"权限不足，需要权限: {permission_name}"
-        )
     
     db_dept = db.query(SysDepartment).filter(SysDepartment.id == dept_id).first()
     
@@ -280,16 +241,7 @@ def delete_department(
     参数:
     - dept_id: 部门ID
     
-    需要权限: department:delete
     """
-    
-    # 检查权限
-    has_permission, permission_name = check_permission(current_user, 'department:delete', db)
-    if not has_permission:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail=f"权限不足，需要权限: {permission_name}"
-        )
     
     db_dept = db.query(SysDepartment).filter(SysDepartment.id == dept_id).first()
     

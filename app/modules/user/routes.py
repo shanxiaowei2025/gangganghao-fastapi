@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from database import get_db
-from app.modules.auth.utils import hash_password, check_permission
+from app.modules.auth.utils import hash_password
 from app.modules.auth.routes import get_current_user
 from app.modules.user.models import SysUser
 from app.modules.department.models import SysDepartment
@@ -33,16 +33,7 @@ def create_user(
     - department_id: 部门ID
     - role_ids: 角色ID列表（可选）
     
-    需要权限: user:create
     """
-    
-    # 检查权限
-    has_permission, permission_name = check_permission(current_user, 'user:create', db)
-    if not has_permission:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail=f"权限不足，需要权限: {permission_name}"
-        )
     
     # 检查用户名是否已存在
     existing_user = db.query(SysUser).filter(SysUser.username == user_create.username).first()
@@ -128,17 +119,7 @@ def list_users(
     - id_card: 身份证号（模糊查询，可选）
     - phone: 手机号（模糊查询，可选）
     - department: 部门（模糊查询，可选）
-    
-    需要权限: user:read
     """
-    
-    # 检查权限
-    has_permission, permission_name = check_permission(current_user, 'user:read', db)
-    if not has_permission:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail=f"权限不足，需要权限: {permission_name}"
-        )
     
     # 验证参数
     if page < 1:
@@ -196,17 +177,7 @@ def get_user(
     参数:
     - user_id: 用户ID
     
-    需要权限: user:read
     """
-    
-    # 检查权限
-    has_permission, permission_name = check_permission(current_user, 'user:read', db)
-    if not has_permission:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail=f"权限不足，需要权限: {permission_name}"
-        )
-    
     db_user = db.query(SysUser).filter(SysUser.id == user_id).first()
     
     if not db_user:
@@ -241,16 +212,7 @@ def update_user(
     - phone: 手机号（可选）
     - department: 部门（可选）
     
-    需要权限: user:update
     """
-    
-    # 检查权限
-    has_permission, permission_name = check_permission(current_user, 'user:update', db)
-    if not has_permission:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail=f"权限不足，需要权限: {permission_name}"
-        )
     
     db_user = db.query(SysUser).filter(SysUser.id == user_id).first()
     
@@ -316,16 +278,7 @@ def delete_user(
     参数:
     - user_id: 用户ID
     
-    需要权限: user:delete
     """
-    
-    # 检查权限
-    has_permission, permission_name = check_permission(current_user, 'user:delete', db)
-    if not has_permission:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail=f"权限不足，需要权限: {permission_name}"
-        )
     
     db_user = db.query(SysUser).filter(SysUser.id == user_id).first()
     

@@ -2,11 +2,9 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from database import get_db
-from app.modules.auth.utils import check_permission
 from app.modules.auth.routes import get_current_user
 from app.modules.user.models import SysUser
 from app.modules.role.models import SysRole
-from app.modules.permission.models import SysPermission
 from app.modules.role.schemas import (
     RoleCreateRequest, RoleUpdateRequest, RoleResponse,
     RoleListResponse, RoleDetailResponse, RoleDeleteResponse
@@ -29,16 +27,7 @@ def create_role(
     - description: 角色描述（可选）
     - permission_ids: 权限ID列表（可选）
     
-    需要权限: role:create
     """
-    
-    # 检查权限
-    has_permission, permission_name = check_permission(current_user, 'role:create', db)
-    if not has_permission:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail=f"权限不足，需要权限: {permission_name}"
-        )
     
     # 检查角色名称是否已存在
     existing_role = db.query(SysRole).filter(SysRole.role_name == role_create.role_name).first()
@@ -48,17 +37,8 @@ def create_role(
             detail="角色名称已存在"
         )
     
-    # 检查权限是否存在（如果提供了权限ID）
+    # 创建新角色（不分配权限）
     permissions = []
-    if role_create.permission_ids:
-        permissions = db.query(SysPermission).filter(
-            SysPermission.id.in_(role_create.permission_ids)
-        ).all()
-        if len(permissions) != len(role_create.permission_ids):
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="部分权限不存在"
-            )
     
     # 创建新角色
     new_role = SysRole(
@@ -98,17 +78,7 @@ def list_roles(
     - page: 页码（默认1）
     - pagesize: 每页记录数（默认10）
     - role_name: 角色名称（模糊查询，可选）
-    
-    需要权限: role:read
     """
-    
-    # 检查权限
-    has_permission, permission_name = check_permission(current_user, 'role:read', db)
-    if not has_permission:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail=f"权限不足，需要权限: {permission_name}"
-        )
     
     # 验证参数
     if page < 1:
@@ -156,17 +126,7 @@ def get_role(
     参数:
     - role_id: 角色ID
     
-    需要权限: role:read
     """
-    
-    # 检查权限
-    has_permission, permission_name = check_permission(current_user, 'role:read', db)
-    if not has_permission:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail=f"权限不足，需要权限: {permission_name}"
-        )
-    
     db_role = db.query(SysRole).filter(SysRole.id == role_id).first()
     
     if not db_role:
@@ -199,16 +159,7 @@ def update_role(
     - role_name: 角色名称（可选）
     - description: 角色描述（可选）
     
-    需要权限: role:update
     """
-    
-    # 检查权限
-    has_permission, permission_name = check_permission(current_user, 'role:update', db)
-    if not has_permission:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail=f"权限不足，需要权限: {permission_name}"
-        )
     
     db_role = db.query(SysRole).filter(SysRole.id == role_id).first()
     
@@ -261,16 +212,7 @@ def delete_role(
     参数:
     - role_id: 角色ID
     
-    需要权限: role:delete
     """
-    
-    # 检查权限
-    has_permission, permission_name = check_permission(current_user, 'role:delete', db)
-    if not has_permission:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail=f"权限不足，需要权限: {permission_name}"
-        )
     
     db_role = db.query(SysRole).filter(SysRole.id == role_id).first()
     
