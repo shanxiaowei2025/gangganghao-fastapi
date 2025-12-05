@@ -1,9 +1,8 @@
-from .models import SysUser, SysRole, user_role_association
-from .schemas import UserLogin, UserResponse, LoginResponse, RoleResponse
+from app.modules.user.models import SysUser, user_role_association
+from app.modules.user.schemas import UserLogin, UserResponse, LoginResponse, RoleResponse
 
 __all__ = [
     "SysUser",
-    "SysRole",
     "user_role_association",
     "UserLogin",
     "UserResponse",

@@ -6,7 +6,8 @@ from jose import JWTError, jwt
 
 from database import get_db
 from app.modules.auth import verify_password, create_access_token, hash_password, ACCESS_TOKEN_EXPIRE_MINUTES, SECRET_KEY, ALGORITHM
-from app.modules.user.models import SysUser, SysDepartment
+from app.modules.user.models import SysUser
+from app.modules.department.models import SysDepartment
 from app.modules.user.schemas import (
     UserLogin, LoginResponse, UserResponse, 
     ChangePasswordRequest, ChangePasswordResponse,

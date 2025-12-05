@@ -4,6 +4,7 @@ from app.modules.auth import router as auth_router
 from app.modules.user.routes import router as user_router
 from app.modules.role.routes import router as role_router
 from app.modules.department.routes import router as department_router
+from app.modules.permission.routes import router as permission_router
 from dotenv import load_dotenv
 
 # 加载 .env 文件
@@ -32,6 +33,7 @@ app.include_router(auth_router)
 app.include_router(user_router)
 app.include_router(role_router)
 app.include_router(department_router)
+app.include_router(permission_router)
 
 
 @app.get("/")

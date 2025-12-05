@@ -1,4 +1,4 @@
-from app.modules.user.models import SysDepartment
+from app.modules.department.models import SysDepartment
 
 __all__ = [
     "SysDepartment",

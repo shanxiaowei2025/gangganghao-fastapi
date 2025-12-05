@@ -6,6 +6,7 @@ from typing import List, Optional
 class RoleCreateRequest(BaseModel):
     role_name: str
     description: Optional[str] = None
+    permission_ids: Optional[List[int]] = None
 
 
 class RoleUpdateRequest(BaseModel):

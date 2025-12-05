@@ -1,4 +1,4 @@
-from app.modules.user.models import SysRole
+from app.modules.role.models import SysRole
 
 __all__ = [
     "SysRole",
