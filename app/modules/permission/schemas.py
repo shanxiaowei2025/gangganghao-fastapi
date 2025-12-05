@@ -115,7 +115,6 @@ class PermissionDeleteResponse(BaseModel):
 # ============================================
 
 class RolePermissionAssignRequest(BaseModel):
-    role_id: int
     permission_ids: List[int]
 
 
