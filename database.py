@@ -1,7 +1,11 @@
 import os
+from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
+
+# 加载 .env 文件中的环境变量
+load_dotenv()
 
 # 从环境变量读取数据库连接字符串
 # 优先使用 DATABASE_URL，如果没有则使用单独的配置参数
