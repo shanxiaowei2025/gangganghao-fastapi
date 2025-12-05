@@ -1,9 +1,11 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.base import BaseHTTPMiddleware
 from app.modules.auth import router as auth_router
 from app.modules.user.routes import router as user_router
 from app.modules.role.routes import router as role_router
 from app.modules.department.routes import router as department_router
+from app.modules.permission.routes import router as permission_router
 from dotenv import load_dotenv
 
 # 加载 .env 文件
@@ -17,6 +19,19 @@ app = FastAPI(
     redoc_url="/redoc",
     openapi_url="/openapi.json"
 )
+
+# 禁用 Swagger 文档缓存的中间件
+class NoCacheMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request, call_next):
+        response = await call_next(request)
+        # 为 Swagger 相关路径添加禁用缓存头
+        if request.url.path in ["/docs", "/redoc", "/openapi.json"]:
+            response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+            response.headers["Pragma"] = "no-cache"
+            response.headers["Expires"] = "0"
+        return response
+
+app.add_middleware(NoCacheMiddleware)
 
 # 添加CORS中间件
 app.add_middleware(
@@ -32,6 +47,7 @@ app.include_router(auth_router)
 app.include_router(user_router)
 app.include_router(role_router)
 app.include_router(department_router)
+app.include_router(permission_router)
 
 
 @app.get("/")

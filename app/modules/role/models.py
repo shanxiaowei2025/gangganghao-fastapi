@@ -14,4 +14,5 @@ class SysRole(Base):
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), comment="更新时间")
     
     # 关系
-    users = relationship("SysUser", secondary="user_role_association", back_populates="roles")
+    users = relationship("SysUser", secondary="rel_user_role", back_populates="roles")
+    permissions = relationship("SysPermission", secondary="rel_role_permission", back_populates="roles")

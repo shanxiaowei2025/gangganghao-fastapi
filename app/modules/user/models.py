@@ -4,8 +4,8 @@ from sqlalchemy.sql import func
 from database import Base
 
 # 用户-角色关联表（多对多）
-user_role_association = Table(
-    'user_role_association',
+rel_user_role = Table(
+    'rel_user_role',
     Base.metadata,
     Column('user_id', Integer, ForeignKey('sys_user.id'), primary_key=True),
     Column('role_id', Integer, ForeignKey('sys_role.id'), primary_key=True)
@@ -26,5 +26,5 @@ class SysUser(Base):
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), comment="更新时间")
     
     # 关系
-    roles = relationship("SysRole", secondary=user_role_association, back_populates="users")
+    roles = relationship("SysRole", secondary=rel_user_role, back_populates="users")
     department = relationship("SysDepartment", backref="users")

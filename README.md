@@ -128,6 +128,12 @@ GET /api/user/{user_id}
 
 ## 数据库表结构
 
+| 前缀	| 含义	| 说明	| 例子 |
+|------|------|------|------|
+| sys_	| System（系统表）	| 一级表，系统基础表	sys_user, sys_role, sys_department |
+| biz_	| Business（业务表）	| 二级表，业务主表	biz_order, biz_product |
+| rel_	| Relationship（关联表）	| 三级表，用于表示多对多关系	rel_role_permission, rel_user_role |
+
 ### sys_user（用户表）
 
 | 字段 | 类型 | 说明 |
@@ -151,7 +157,7 @@ GET /api/user/{user_id}
 | description | TEXT | 角色描述 |
 | created_at | DATETIME | 创建时间 |
 
-### user_role_association（用户-角色关联表）
+### rel_user_role（用户-角色关联表）
 
 | 字段 | 类型 | 说明 |
 |------|------|------|
