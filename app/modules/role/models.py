@@ -1,15 +1,7 @@
-from sqlalchemy import Column, Integer, String, DateTime, Text, Table, ForeignKey
+from sqlalchemy import Column, Integer, String, DateTime, Text
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from database import Base
-
-# 角色-权限关联表（多对多）
-role_permission_association = Table(
-    'role_permission_association',
-    Base.metadata,
-    Column('role_id', Integer, ForeignKey('sys_role.id'), primary_key=True),
-    Column('permission_id', Integer, ForeignKey('sys_permission.id'), primary_key=True)
-)
 
 
 class SysRole(Base):
@@ -23,4 +15,3 @@ class SysRole(Base):
     
     # 关系
     users = relationship("SysUser", secondary="user_role_association", back_populates="roles")
-    permissions = relationship("SysPermission", secondary=role_permission_association, back_populates="roles")

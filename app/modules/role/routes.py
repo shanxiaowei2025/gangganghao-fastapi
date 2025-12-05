@@ -25,8 +25,6 @@ def create_role(
     参数:
     - role_name: 角色名称（唯一）
     - description: 角色描述（可选）
-    - permission_ids: 权限ID列表（可选）
-    
     """
     
     # 检查角色名称是否已存在
@@ -37,18 +35,11 @@ def create_role(
             detail="角色名称已存在"
         )
     
-    # 创建新角色（不分配权限）
-    permissions = []
-    
     # 创建新角色
     new_role = SysRole(
         role_name=role_create.role_name,
         description=role_create.description
     )
-    
-    # 分配权限
-    if permissions:
-        new_role.permissions = permissions
     
     db.add(new_role)
     db.commit()
