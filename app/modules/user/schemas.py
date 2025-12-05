@@ -12,6 +12,15 @@ class RoleResponse(BaseModel):
         from_attributes = True
 
 
+class DepartmentResponse(BaseModel):
+    id: int
+    department_name: str
+    description: Optional[str] = None
+
+    class Config:
+        from_attributes = True
+
+
 class UserLogin(BaseModel):
     username: str
     password: str
@@ -23,7 +32,7 @@ class UserResponse(BaseModel):
     real_name: str
     id_card: str
     phone: str
-    department: str
+    department: DepartmentResponse
     roles: List[RoleResponse] = []
     created_at: datetime
 
@@ -52,7 +61,7 @@ class UpdateProfileRequest(BaseModel):
     real_name: Optional[str] = None
     id_card: Optional[str] = None
     phone: Optional[str] = None
-    department: Optional[str] = None
+    department_id: Optional[int] = None
 
 
 class UpdateProfileResponse(BaseModel):
@@ -67,14 +76,15 @@ class UserCreateRequest(BaseModel):
     real_name: str
     id_card: str
     phone: str
-    department: str
+    department_id: int
+    role_ids: Optional[List[int]] = None
 
 
 class UserUpdateRequest(BaseModel):
     real_name: Optional[str] = None
     id_card: Optional[str] = None
     phone: Optional[str] = None
-    department: Optional[str] = None
+    department_id: Optional[int] = None
 
 
 class UserListResponse(BaseModel):

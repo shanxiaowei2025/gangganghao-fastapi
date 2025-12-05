@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from database import get_db
 from app.modules.auth.utils import hash_password
 from app.modules.auth.routes import get_current_user
-from app.modules.user.models import SysUser
+from app.modules.user.models import SysUser, SysDepartment, SysRole
 from app.modules.user.schemas import (
     UserCreateRequest, UserUpdateRequest, UserResponse,
     UserListResponse, UserDetailResponse, UserDeleteResponse
@@ -28,7 +28,8 @@ def create_user(
     - real_name: 真实姓名
     - id_card: 身份证号（唯一）
     - phone: 手机号
-    - department: 部门
+    - department_id: 部门ID
+    - role_ids: 角色ID列表（可选）
     
     需要管理员权限
     """
@@ -49,6 +50,24 @@ def create_user(
             detail="身份证号已存在"
         )
     
+    # 检查部门是否存在
+    department = db.query(SysDepartment).filter(SysDepartment.id == user_create.department_id).first()
+    if not department:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="部门不存在"
+        )
+    
+    # 检查角色是否存在（如果提供了角色ID）
+    roles = []
+    if user_create.role_ids:
+        roles = db.query(SysRole).filter(SysRole.id.in_(user_create.role_ids)).all()
+        if len(roles) != len(user_create.role_ids):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="部分角色不存在"
+            )
+    
     # 创建新用户
     new_user = SysUser(
         username=user_create.username,
@@ -56,8 +75,12 @@ def create_user(
         real_name=user_create.real_name,
         id_card=user_create.id_card,
         phone=user_create.phone,
-        department=user_create.department
+        department_id=user_create.department_id
     )
+    
+    # 分配角色
+    if roles:
+        new_user.roles = roles
     
     db.add(new_user)
     db.commit()
@@ -116,7 +139,9 @@ def list_users(
     if phone:
         query = query.filter(SysUser.phone.ilike(f"%{phone}%"))
     if department:
-        query = query.filter(SysUser.department.ilike(f"%{department}%"))
+        query = query.join(SysDepartment).filter(
+            SysDepartment.department_name.ilike(f"%{department}%")
+        )
     
     # 查询总数
     total = query.count()
@@ -217,8 +242,15 @@ def update_user(
     if user_update.phone is not None:
         db_user.phone = user_update.phone
     
-    if user_update.department is not None:
-        db_user.department = user_update.department
+    if user_update.department_id is not None:
+        # 检查部门是否存在
+        department = db.query(SysDepartment).filter(SysDepartment.id == user_update.department_id).first()
+        if not department:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="部门不存在"
+            )
+        db_user.department_id = user_update.department_id
     
     db.commit()
     db.refresh(db_user)

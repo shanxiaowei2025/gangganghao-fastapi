@@ -6,7 +6,7 @@ from jose import JWTError, jwt
 
 from database import get_db
 from app.modules.auth import verify_password, create_access_token, hash_password, ACCESS_TOKEN_EXPIRE_MINUTES, SECRET_KEY, ALGORITHM
-from app.modules.user.models import SysUser
+from app.modules.user.models import SysUser, SysDepartment
 from app.modules.user.schemas import (
     UserLogin, LoginResponse, UserResponse, 
     ChangePasswordRequest, ChangePasswordResponse,
@@ -175,8 +175,15 @@ def update_profile(
     if update_request.phone is not None:
         current_user.phone = update_request.phone
     
-    if update_request.department is not None:
-        current_user.department = update_request.department
+    if update_request.department_id is not None:
+        # 检查部门是否存在
+        department = db.query(SysDepartment).filter(SysDepartment.id == update_request.department_id).first()
+        if not department:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="部门不存在"
+            )
+        current_user.department_id = update_request.department_id
     
     # 保存到数据库
     db.commit()
