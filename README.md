@@ -157,12 +157,43 @@ GET /api/user/{user_id}
 | description | TEXT | 角色描述 |
 | created_at | DATETIME | 创建时间 |
 
+### sys_page（系统页面表）
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| id | INT | 页面ID（主键） |
+| page_name | VARCHAR(50) | 页面名称（英文，唯一） |
+| page_display_name | VARCHAR(100) | 页面显示名称（中文） |
+| parent_id | INT | 父页面ID（外键，支持树形结构） |
+| description | TEXT | 页面描述 |
+| created_at | DATETIME | 创建时间 |
+| updated_at | DATETIME | 更新时间 |
+
+### sys_permission（系统权限表）
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| id | INT | 权限ID（主键） |
+| permission_code | VARCHAR(100) | 权限代码（唯一，格式: page_name:action） |
+| permission_name | VARCHAR(100) | 权限名称 |
+| page_id | INT | 所属页面ID（外键） |
+| description | TEXT | 权限描述 |
+| created_at | DATETIME | 创建时间 |
+| updated_at | DATETIME | 更新时间 |
+
 ### rel_user_role（用户-角色关联表）
 
 | 字段 | 类型 | 说明 |
 |------|------|------|
 | user_id | INT | 用户ID（外键） |
 | role_id | INT | 角色ID（外键） |
+
+### rel_role_permission（角色-权限关联表）
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| role_id | INT | 角色ID（外键） |
+| permission_id | INT | 权限ID（外键） |
 
 ## 默认账号
 

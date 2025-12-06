@@ -10,12 +10,14 @@ from typing import List, Optional
 class PageCreateRequest(BaseModel):
     page_name: str
     page_display_name: str
+    parent_id: Optional[int] = None
     description: Optional[str] = None
 
 
 class PageUpdateRequest(BaseModel):
     page_name: Optional[str] = None
     page_display_name: Optional[str] = None
+    parent_id: Optional[int] = None
     description: Optional[str] = None
 
 
@@ -23,8 +25,22 @@ class PageResponse(BaseModel):
     id: int
     page_name: str
     page_display_name: str
+    parent_id: Optional[int] = None
     description: Optional[str] = None
     created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class PageTreeResponse(BaseModel):
+    """页面树形结构响应"""
+    id: int
+    page_name: str
+    page_display_name: str
+    parent_id: Optional[int] = None
+    description: Optional[str] = None
+    children: List["PageTreeResponse"] = []
 
     class Config:
         from_attributes = True

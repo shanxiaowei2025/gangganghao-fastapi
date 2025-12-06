@@ -8,7 +8,7 @@ from app.modules.user.models import SysUser
 from app.modules.role.models import SysRole
 from app.modules.permission.models import SysPage, SysPermission, rel_role_permission
 from app.modules.permission.schemas import (
-    PageResponse, PageListResponse,
+    PageResponse, PageListResponse, PageTreeResponse,
     PermissionResponse, PermissionListResponse,
     RolePermissionAssignRequest, RolePermissionAssignResponse, RolePermissionsResponse,
     BatchRolePermissionsRequest, BatchRolePermissionsResponse
@@ -20,6 +20,20 @@ router = APIRouter(prefix="/api/permissions", tags=["权限管理"])
 # ============================================
 # 页面管理接口
 # ============================================
+
+def build_page_tree(page: SysPage) -> dict:
+    """
+    递归构建页面树形结构
+    """
+    return {
+        "id": page.id,
+        "page_name": page.page_name,
+        "page_display_name": page.page_display_name,
+        "parent_id": page.parent_id,
+        "description": page.description,
+        "children": [build_page_tree(child) for child in page.children]
+    }
+
 
 @router.get("/pages", response_model=PageListResponse, summary="获取页面列表")
 def list_pages(
@@ -73,6 +87,31 @@ def list_pages(
         page=page,
         pagesize=pagesize
     )
+
+
+@router.get("/pages/tree", response_model=dict, summary="获取页面树形结构")
+def get_pages_tree(
+    db: Session = Depends(get_db),
+    current_user: SysUser = Depends(get_current_user)
+):
+    """
+    获取所有页面的树形结构（用于前端菜单展示）
+    
+    返回:
+    - 树形结构的页面列表，包含父子关系
+    """
+    
+    # 只查询顶级页面（parent_id 为 NULL）
+    root_pages = db.query(SysPage).filter(SysPage.parent_id == None).all()
+    
+    # 构建树形结构
+    tree_data = [build_page_tree(page) for page in root_pages]
+    
+    return {
+        "code": 200,
+        "message": "获取页面树形结构成功",
+        "data": tree_data
+    }
 
 
 
