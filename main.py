@@ -6,10 +6,22 @@ from app.modules.user.routes import router as user_router
 from app.modules.role.routes import router as role_router
 from app.modules.department.routes import router as department_router
 from app.modules.permission.routes import router as permission_router
+from app.modules.order.order_list import router as order_item_router
 from dotenv import load_dotenv
+from database import Base, engine
+
+# 导入所有模型以确保它们被注册到 Base.metadata
+from app.modules.user.models import SysUser
+from app.modules.role.models import SysRole
+from app.modules.department.models import SysDepartment
+from app.modules.permission.models import SysPermission
+from app.modules.order.order_list.models import OrderItem
 
 # 加载 .env 文件
 load_dotenv()
+
+# 创建所有表（已禁用，需要手动创建数据表）
+# Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
     title="用户管理系统",
@@ -48,6 +60,7 @@ app.include_router(user_router)
 app.include_router(role_router)
 app.include_router(department_router)
 app.include_router(permission_router)
+app.include_router(order_item_router)
 
 
 @app.get("/")
