@@ -20,8 +20,9 @@ RUN echo "deb http://mirrors.cloud.tencent.com/debian bookworm main contrib non-
 # 先复制 requirements.txt（这样可以利用 Docker 缓存）
 COPY requirements.txt .
 
-# 升级 pip 并安装 Python 依赖（使用腾讯云镜像源）
+# 升级 pip 并安装 Python 依赖（使用腾讯云镜像源，只用预编译包加速）
 RUN pip install --upgrade pip -i https://mirrors.cloud.tencent.com/pypi/simple && \
+    pip install --only-binary=:all: -r requirements.txt -i https://mirrors.cloud.tencent.com/pypi/simple || \
     pip install -r requirements.txt -i https://mirrors.cloud.tencent.com/pypi/simple
 
 # 复制项目文件（放在最后，避免频繁重建）
