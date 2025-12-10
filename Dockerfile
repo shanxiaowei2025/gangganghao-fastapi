@@ -10,13 +10,6 @@ ENV PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=1
 
-# 配置腾讯云 apt 源并安装系统依赖
-RUN echo "deb http://mirrors.cloud.tencent.com/debian bookworm main contrib non-free non-free-firmware" > /etc/apt/sources.list && \
-    echo "deb http://mirrors.cloud.tencent.com/debian bookworm-updates main contrib non-free non-free-firmware" >> /etc/apt/sources.list && \
-    apt-get update && apt-get install -y --no-install-recommends \
-    gcc \
-    && rm -rf /var/lib/apt/lists/*
-
 # 先复制 requirements.txt（这样可以利用 Docker 缓存）
 COPY requirements.txt .
 
