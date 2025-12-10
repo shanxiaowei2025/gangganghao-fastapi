@@ -22,6 +22,11 @@ class OrderItemCreateRequest(BaseModel):
     remark: Optional[str] = None
 
 
+class OrderItemBatchCreateRequest(BaseModel):
+    """订单项批量创建请求"""
+    items: List[OrderItemCreateRequest]
+
+
 class OrderItemUpdateRequest(BaseModel):
     """订单项更新请求"""
     order_number: Optional[str] = None
@@ -83,7 +88,29 @@ class OrderItemDetailResponse(BaseModel):
     data: Optional[OrderItemResponse] = None
 
 
+class OrderItemBatchCreateResponse(BaseModel):
+    """订单项批量创建响应"""
+    code: int
+    message: str
+    data: List[OrderItemResponse] = []
+
+
 class OrderItemDeleteResponse(BaseModel):
     """订单项删除响应"""
     code: int
     message: str
+
+
+class OrderNumberItem(BaseModel):
+    """订单编号、项目名称、创建时间和更新时间"""
+    order_number: str
+    project_name: str
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
+
+
+class OrderNumberListResponse(BaseModel):
+    """订单编号列表响应"""
+    code: int
+    message: str
+    data: List[OrderNumberItem] = []

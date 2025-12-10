@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File
 from sqlalchemy.orm import Session
 from sqlalchemy import func
-from typing import List
+from typing import List, Union
 from datetime import datetime
 
 from database import get_db
@@ -9,71 +9,126 @@ from app.modules.auth.routes import get_current_user
 from app.modules.user.models import SysUser
 from app.modules.order.order_list.models import OrderItem
 from app.modules.order.order_list.schemas import (
-    OrderItemCreateRequest, OrderItemUpdateRequest, OrderItemResponse,
-    OrderItemListResponse, OrderItemDetailResponse, OrderItemDeleteResponse
+    OrderItemCreateRequest, OrderItemBatchCreateRequest, OrderItemUpdateRequest, OrderItemResponse,
+    OrderItemListResponse, OrderItemDetailResponse, OrderItemBatchCreateResponse, OrderItemDeleteResponse,
+    OrderNumberListResponse, OrderNumberItem
 )
 from app.modules.order.order_list.excel_parser import ExcelParser
 
 router = APIRouter(prefix="/api/order", tags=["订单管理-订单列表"])
 
 
-@router.post("", response_model=OrderItemDetailResponse, summary="创建订单项")
+@router.post("", summary="创建订单项（支持单条和批量）")
 def create_order_item(
-    order_item_create: OrderItemCreateRequest,
+    data: Union[OrderItemCreateRequest, OrderItemBatchCreateRequest],
     db: Session = Depends(get_db),
     current_user: SysUser = Depends(get_current_user)
 ):
     """
-    创建新订单项
+    创建订单项（支持单条和批量创建）
     
-    参数:
-    - order_number: 订单编号（11位）
-    - project_name: 项目名称
-    - component: 构件
-    - location: 部位
-    - component_name: 构件名称
-    - number: 编号（5位）
-    - level_diameter: 级别直径
-    - rebar_sketch: 钢筋简图（可选）
-    - graph_info: 图形信息（可选）
-    - edge_structure: 边角结构
-    - cutting_length_mm: 下料(mm)（字符串）
-    - quantity_pieces: 根数*件数（字符串）
-    - total_quantity: 总根数
-    - weight_kg: 重量(kg)（字符串）
-    - remark: 备注（可选）
+    单条创建示例:
+    {
+        "order_number": "20251209002",
+        "project_name": "项目名称",
+        "component": "构件",
+        "location": "部位",
+        "component_name": "构件名称",
+        "number": "编号",
+        "level_diameter": "级别直径",
+        "edge_structure": "边角结构",
+        "cutting_length_mm": "下料(mm)",
+        "quantity_pieces": "根数*件数",
+        "total_quantity": 10,
+        "weight_kg": "重量(kg)"
+    }
+    
+    批量创建示例:
+    {
+        "items": [
+            {...},
+            {...}
+        ]
+    }
     """
     
-    # 创建新订单项
-    new_order_item = OrderItem(
-        order_number=order_item_create.order_number,
-        project_name=order_item_create.project_name,
-        component=order_item_create.component,
-        location=order_item_create.location,
-        component_name=order_item_create.component_name,
-        number=order_item_create.number,
-        level_diameter=order_item_create.level_diameter,
-        rebar_sketch=order_item_create.rebar_sketch,
-        graph_info=order_item_create.graph_info,
-        edge_structure=order_item_create.edge_structure,
-        cutting_length_mm=order_item_create.cutting_length_mm,
-        quantity_pieces=order_item_create.quantity_pieces,
-        total_quantity=order_item_create.total_quantity,
-        weight_kg=order_item_create.weight_kg,
-        remark=order_item_create.remark
-    )
+    try:
+        # 判断是单条还是批量创建
+        if isinstance(data, OrderItemBatchCreateRequest):
+            # 批量创建
+            created_items = []
+            for item_data in data.items:
+                new_order_item = OrderItem(
+                    order_number=item_data.order_number,
+                    project_name=item_data.project_name,
+                    component=item_data.component,
+                    location=item_data.location,
+                    component_name=item_data.component_name,
+                    number=item_data.number,
+                    level_diameter=item_data.level_diameter,
+                    rebar_sketch=item_data.rebar_sketch,
+                    graph_info=item_data.graph_info,
+                    edge_structure=item_data.edge_structure,
+                    cutting_length_mm=item_data.cutting_length_mm,
+                    quantity_pieces=item_data.quantity_pieces,
+                    total_quantity=item_data.total_quantity,
+                    weight_kg=item_data.weight_kg,
+                    remark=item_data.remark
+                )
+                db.add(new_order_item)
+                created_items.append(new_order_item)
+            
+            db.commit()
+            
+            # 刷新所有项目以获取ID
+            for item in created_items:
+                db.refresh(item)
+            
+            responses = [OrderItemResponse.from_orm(item) for item in created_items]
+            
+            return OrderItemBatchCreateResponse(
+                code=200,
+                message=f"批量创建成功，共创建 {len(responses)} 条记录",
+                data=responses
+            )
+        else:
+            # 单条创建
+            new_order_item = OrderItem(
+                order_number=data.order_number,
+                project_name=data.project_name,
+                component=data.component,
+                location=data.location,
+                component_name=data.component_name,
+                number=data.number,
+                level_diameter=data.level_diameter,
+                rebar_sketch=data.rebar_sketch,
+                graph_info=data.graph_info,
+                edge_structure=data.edge_structure,
+                cutting_length_mm=data.cutting_length_mm,
+                quantity_pieces=data.quantity_pieces,
+                total_quantity=data.total_quantity,
+                weight_kg=data.weight_kg,
+                remark=data.remark
+            )
+            
+            db.add(new_order_item)
+            db.commit()
+            db.refresh(new_order_item)
+            
+            order_item_response = OrderItemResponse.from_orm(new_order_item)
+            
+            return OrderItemDetailResponse(
+                code=200,
+                message="订单项创建成功",
+                data=order_item_response
+            )
     
-    db.add(new_order_item)
-    db.commit()
-    db.refresh(new_order_item)
-    
-    order_item_response = OrderItemResponse.from_orm(new_order_item)
-    
-    return OrderItemDetailResponse(
-        code=200,
-        message="订单项创建成功",
-        data=order_item_response
-    )
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"创建失败: {str(e)}"
+        )
 
 
 @router.get("", response_model=OrderItemListResponse, summary="获取订单项列表")
@@ -141,6 +196,50 @@ def list_order_items(
         page=page,
         pagesize=pagesize
     )
+
+
+@router.get("/next-order-number", summary="获取下一个订单编号")
+def get_next_order_number(
+    db: Session = Depends(get_db),
+    current_user: SysUser = Depends(get_current_user)
+):
+    """
+    获取下一个订单编号（查询数据库中当天的最大订单编号）
+    
+    返回:
+    - 11位订单编号（YYYYMMDD + 3位序列号）
+    """
+    try:
+        today = datetime.now().strftime('%Y%m%d')
+        
+        # 查询当天最大的订单编号
+        max_order = db.query(OrderItem).filter(
+            func.substr(OrderItem.order_number, 1, 8) == today
+        ).order_by(OrderItem.order_number.desc()).first()
+        
+        if max_order:
+            # 提取当前最大订单号的后三位，加1
+            current_seq = int(max_order.order_number[-3:])
+            next_seq = current_seq + 1
+        else:
+            # 当天没有订单，从001开始
+            next_seq = 1
+        
+        # 生成新的订单编号
+        order_number = today + str(next_seq).zfill(3)
+        
+        return {
+            "code": 200,
+            "message": "获取订单编号成功",
+            "data": {
+                "order_number": order_number
+            }
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"获取订单编号失败: {str(e)}"
+        )
 
 
 @router.get("/{order_id}", response_model=OrderItemDetailResponse, summary="获取订单项详情")
@@ -360,78 +459,45 @@ def generate_order_number(db: Session) -> str:
     return order_number
 
 
-@router.post("/import/db", summary="导入解析后的数据到数据库")
-def import_parsed_data_to_db(
-    data_list: List[dict],
+@router.get("/distinct/order-numbers", response_model=OrderNumberListResponse, summary="获取订单编号唯一值及对应项目名称")
+def get_distinct_order_numbers(
     db: Session = Depends(get_db),
     current_user: SysUser = Depends(get_current_user)
 ):
     """
-    导入解析后的数据到数据库
-    
-    参数:
-    - data_list: 来自 /api/order/import/excel 接口的返回数据（data 字段）
+    查询 sys_order 表中订单编号的唯一值，和各唯一值对应的项目名称、创建时间和更新时间
     
     返回:
-    - 导入成功的记录数
+    - 数组，数组内为字典，字典中有订单编号、项目名称、创建时间和更新时间
     """
     try:
-        if not data_list:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="数据列表为空"
+        # 查询订单编号和项目名称的唯一组合，以及最新的创建时间和更新时间
+        results = db.query(
+            OrderItem.order_number,
+            OrderItem.project_name,
+            func.min(OrderItem.created_at).label('created_at'),
+            func.max(OrderItem.updated_at).label('updated_at')
+        ).group_by(OrderItem.order_number, OrderItem.project_name).all()
+        
+        # 将结果转换为字典列表
+        data = [
+            OrderNumberItem(
+                order_number=result.order_number,
+                project_name=result.project_name,
+                created_at=result.created_at,
+                updated_at=result.updated_at
             )
+            for result in results
+        ]
         
-        # 生成订单编号（同一批数据使用相同的订单编号）
-        order_number = generate_order_number(db)
-        
-        # 插入数据到数据库
-        imported_count = 0
-        for item_data in data_list:
-            try:
-                # 创建订单项
-                new_order_item = OrderItem(
-                    order_number=order_number,
-                    project_name=item_data.get('project_name'),
-                    component=item_data.get('component'),
-                    location=item_data.get('location'),
-                    component_name=item_data.get('component_name'),
-                    number=item_data.get('number'),
-                    level_diameter=item_data.get('level_diameter'),
-                    rebar_sketch=item_data.get('rebar_sketch'),
-                    graph_info=item_data.get('graph_info'),
-                    edge_structure=item_data.get('edge_structure'),
-                    cutting_length_mm=item_data.get('cutting_length_mm'),
-                    quantity_pieces=item_data.get('quantity_pieces'),
-                    total_quantity=item_data.get('total_quantity'),
-                    weight_kg=item_data.get('weight_kg'),
-                    remark=item_data.get('remark')
-                )
-                db.add(new_order_item)
-                imported_count += 1
-            except Exception as e:
-                # 记录错误但继续处理其他行
-                print(f"导入行失败: {str(e)}")
-                continue
-        
-        # 提交所有更改
-        db.commit()
-        
-        return {
-            "code": 200,
-            "message": f"数据导入成功，共导入 {imported_count} 条记录",
-            "data": {
-                "order_number": order_number,
-                "imported_count": imported_count,
-                "total_count": len(data_list)
-            }
-        }
+        return OrderNumberListResponse(
+            code=200,
+            message="获取订单编号唯一值成功",
+            data=data
+        )
     
-    except HTTPException:
-        raise
     except Exception as e:
-        db.rollback()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"数据导入失败: {str(e)}"
+            detail=f"查询失败: {str(e)}"
         )
